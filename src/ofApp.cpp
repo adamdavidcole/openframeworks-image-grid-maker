@@ -8,7 +8,7 @@ void ofApp::setup(){
     cellHeight = 512;
     
     numRows = 7;
-    numColumns = 26;
+    numColumns = 20;
     
     
     
@@ -21,21 +21,32 @@ void ofApp::setup(){
     gridWidth = cellWidth;
     gridHeight = cellHeight;
     
+    gui.setDefaultWidth(300);
     gui.setup(); // Set up the GUI
 
     // Set up the slider
    // Initial value, min value, max value
-    gui.add(skipSlider.setup("Skip", 1, 1, 10));
+    gui.add(skipSlider.setup("Skip", 1, 1, 15));
     skipSlider.addListener(this, &ofApp::skipSliderChanged);
     skip = 1; // Initial skip value
     
-    gui.add(startFrameSlider.setup("Start frame", 0, 0, 1000, 1));
+    gui.add(startFrameSlider.setup("Skip Start frame", 0, 0, 100, 1));
     startFrameSlider.addListener(this, &ofApp::startFrameSliderChanged);
     startFrame = 0; // Initial skip value
     
-    gui.add(endFrameSlider.setup("End frame", 0, 0, 1000, 1));
+    endFrame = 2; // Initial skip value
+    gui.add(endFrameSlider.setup("Skip End frame", endFrame, 0, 100, 1));
     endFrameSlider.addListener(this, &ofApp::endFrameSliderChanged);
-    endFrame = 0; // Initial skip value
+
+    gui.add(flipHorizontalCheckbox.setup("Flip horizontal", false));
+    shouldFlipHorizontal = false;
+    flipHorizontalCheckbox.addListener(this, &ofApp::flipHorizontalToggleChanged);
+    
+    
+    shiftStartFrame = 0; // Initial skip value
+    gui.add(shiftStartFrameSlider.setup("Shift Start Frame", shiftStartFrame, -300, 300, 1));
+    shiftStartFrameSlider.addListener(this, &ofApp::shiftStartFrameSliderChanged);
+
     
     ofDirectory dir("images/");
     dir.listDir();
@@ -56,13 +67,20 @@ void ofApp::setup(){
 
     
     
-    loadImages("images/controlnet-02-openpose");
+    loadImages("images/ControlNetWrestle_004");
     createImage();
 }
 
 void ofApp::dirParamChanged(string & value) {
     ofLog() << "dirParamChanged: " << value;
     loadImages("images/" + value);
+}
+
+void ofApp::flipHorizontalToggleChanged(bool & value) {
+    ofLog() << "flipHorizontalToggleChanged: " << value;
+    shouldFlipHorizontal = value;
+    
+    createImage();
 }
 
 void ofApp::loadImages(string path) {
@@ -96,18 +114,26 @@ void ofApp::createImage() {
     fbo.begin();
     ofClear(255,255,255, 0); // Clear the FBO
 
+    
 
-    int imageCount = 0;
+    int imageCount = shiftStartFrame;
+    if (imageCount < 0) {
+        imageCount = totalImageCount + shiftStartFrame;
+    }
     for (int j = 0; j < numColumns; j++) {
         for (int i = 0; i < numRows; i++) {
             if (imageCount > totalImageCount - endFrame) imageCount = 0;
             if (imageCount == 0) imageCount += startFrame;
             
+            ofImage img = images[imageCount % totalImageCount];
+            
             int x = i * cellWidth;
             int y = j * cellHeight;
-        
-            images[imageCount % totalImageCount].draw(x, y, cellWidth, cellHeight);
             
+            img.mirror(false, shouldFlipHorizontal);
+            
+        
+            img.draw(x, y, cellWidth, cellHeight);
     
             
             imageCount += skip;
@@ -160,6 +186,13 @@ void ofApp::endFrameSliderChanged(int & value) {
     endFrame = value;
     
     ofLog() << "end frame is " << endFrame;
+    createImage();
+}
+
+void ofApp::shiftStartFrameSliderChanged(int & value) {
+    shiftStartFrame = value;
+    
+    ofLog() << "shiftStartFrame " << shiftStartFrame;
     createImage();
 }
 

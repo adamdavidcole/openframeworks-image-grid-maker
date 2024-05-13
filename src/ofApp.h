@@ -20,9 +20,17 @@ class ofApp : public ofBaseApp{
     int startFrame;
     void startFrameSliderChanged(int & value);
     
+    ofxIntSlider shiftStartFrameSlider;
+    int shiftStartFrame;
+    void shiftStartFrameSliderChanged(int & value);
+    
     ofxIntSlider endFrameSlider;
     int endFrame;
     void endFrameSliderChanged(int & value);
+    
+    ofxToggle flipHorizontalCheckbox;
+    bool shouldFlipHorizontal;
+    void flipHorizontalToggleChanged(bool & value);
     
     ofParameterGroup dirGroup;
     void dirParamChanged(string & value);
