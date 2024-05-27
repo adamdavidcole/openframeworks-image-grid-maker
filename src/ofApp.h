@@ -39,11 +39,16 @@ class ofApp : public ofBaseApp{
     int canvasWidth;
     int canvasHeight;
     
+    float scale;
     int cellWidth;
     int cellHeight;
     int numRows;
     int numColumns;
     int totalImageCount;
+    
+    float animationStartTime;
+    float animationTotalDuration;
+    
 
     int gridWidth;
     int gridHeight;

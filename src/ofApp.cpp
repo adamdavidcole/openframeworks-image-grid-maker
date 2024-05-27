@@ -4,13 +4,15 @@
 
 
 void ofApp::setup(){
-    cellWidth = 896;
-    cellHeight = 512;
+    scale = 0.1;
+    cellWidth = 896 * scale;
+    cellHeight = 512 * scale;
     
     numRows = 7;
     numColumns = 20;
     
-    
+    animationStartTime = -1;
+    animationTotalDuration = 10.0;
     
     canvasWidth = cellWidth * numRows; // Set your canvas width
     canvasHeight = cellHeight * numColumns; // Set your canvas height
@@ -114,8 +116,6 @@ void ofApp::createImage() {
     fbo.begin();
     ofClear(255,255,255, 0); // Clear the FBO
 
-    
-
     int imageCount = shiftStartFrame;
     if (imageCount < 0) {
         imageCount = totalImageCount + shiftStartFrame;
@@ -145,8 +145,28 @@ void ofApp::createImage() {
     fbo.end();
 }
 
+float easeOut(float t) {
+    return 1 - pow(1 - t, 3);
+}
+
 void ofApp::draw(){
-    gui.draw(); // Draw the GUI
+   gui.draw(); // Draw the GUI
+    
+    if (animationStartTime > 0) {
+        float t = (ofGetElapsedTimef() - animationStartTime) / animationTotalDuration;
+        if (t > 1) {
+            t = 1;
+            animationStartTime = -1;
+        }
+        
+        float easedT = easeOut(t);
+        
+        ofLog() << easedT << "\n";
+        
+        int startFrame = ofMap(easedT, 0, 1, 0, totalImageCount);
+        shiftStartFrame = startFrame;
+        createImage();
+    }
     
     // Draw the large image (scaled to maintain aspect ratio)
    ofSetColor(255);
@@ -220,6 +240,10 @@ void ofApp::keyPressed(int key){
         ofPixels pixels;
         fbo.readToPixels(pixels);
         ofSaveImage(pixels, "controlnet-print-" + ofGetTimestampString() + ".png");
+    }
+    
+    if (key == 'm') {
+        animationStartTime = ofGetElapsedTimef();
     }
 }
 //
